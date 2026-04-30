@@ -1,0 +1,7 @@
+scraperbot.db
+scraperbot_demo_frozen.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
