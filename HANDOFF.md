@@ -8,34 +8,42 @@ If this file says one thing and the code says another, **the code is the truth**
 
 ## Last session summary
 
-- **Session ended:** 2026-05-08, after Step A recovery
-- **Why ended:** Step A artifacts successfully recovered onto the current session branch via merge; verification re-run from a clean `db.py` rebuild and all G-A1 through G-A7 PASS; awaiting B's decisions on push strategy, branch reconciliation, and Step B "go" (environment setup queued first).
+- **Session ended:** 2026-05-08, after Step A recovery + push consolidation + env-file setup
+- **Why ended:** Step A artifacts recovered onto canonical branch via merge; consolidation pushed (canonical + main both fast-forwarded); env infrastructure (python-dotenv + .env + load_dotenv wiring) committed locally; API key load + Anthropic ping verified end-to-end. Awaiting B on push of env-setup commit and Step B "go."
 - **What got done:**
   - **Forensics.** Discovered the repo had split into two lineages at common ancestor `5c3ed9e`. The docs lineage (tip `02a3958`, also `main`/`origin/main`) carried `CLAUDE.md`, `HANDOFF.md`, `VERIFICATION.md`, `OBSERVATIONS.md`, `README.md`, `DEMO_RUNBOOK.md`, plus an inadvertent re-introduction of the v1.1 spec. The code lineage (`origin/claude/ezz-steel-scraper-step1-yQejR`, tip `e525c21`, parent `4fb559e`) carried the Step A scaffold (`db.py`, `system_prompt.txt`, `requirements.txt`, `main.py`, `chat.py`, `.gitignore`) plus v1.2 spec only, with v1.1 deleted. Both `e525c21` and `4fb559e` were intact on origin, neither GC'd. The two lineages had never been merged, which is why the working tree on the docs side carried zero code despite HANDOFF describing Step A as "complete."
   - **Recovery.** Merged `origin/claude/ezz-steel-scraper-step1-yQejR` onto `claude/check-status-continue-QT5cm` with `--no-ff`. Strategy `ort`, zero conflicts. Merge commit `641b8d3`. The v1.1 spec deletion was folded into the merge automatically by clean three-way resolution (recovered branch's `4fb559e` deletion vs docs branch unchanged on v1.1 since the common ancestor). The original plan called for a standalone deletion commit, but Option 1 was chosen — the merge diff already records the deletion, and a re-add-then-delete sequence would obscure history more than it clarifies. None of the recovered files were regenerated; the blobs in the merged tree are byte-identical to the originals at `e525c21`.
-  - **Verification.** Rebuilt `scraperbot.db` from `db.py` and executed VERIFICATION.md §1 manual procedure plus G-A4 (system-prompt diff). All seven golden tests PASS against the merged tree:
+  - **Verification (post-recovery).** Rebuilt `scraperbot.db` from `db.py` and executed VERIFICATION.md §1 manual procedure plus G-A4 (system-prompt diff). All seven golden tests PASS against the merged tree:
     - **G-A1: PASS** — `python db.py` produces `scraperbot.db` (57344 bytes, ~56 KB; spec said "~57 KB").
     - **G-A2: PASS** — exactly 9 Section 4 tables present, names match.
     - **G-A3: PASS** — row counts match baseline (cbe_metrics 60, cbe_raw_extractions 5, cleaning_log 8, conversations 3, projects_clean 5, projects_clean_currency_only 5, projects_raw 5, runs 5, steel_ratios 10).
-    - **G-A4: PASS** — `system_prompt.txt` byte-identical to spec v1.2 Appendix A (extracted between the ``` fences at lines 522–633 of `scraper_bot_demo_spec_v1_2.md`). `diff -u system_prompt.txt /tmp/appendix_a_extracted.txt` returned exit 0. Both files sha256 = `7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01`. 112 lines, 6218 bytes each. This is the strongest possible evidence of byte-identicality.
-    - **G-A5: PASS** — `steel_ratios` columns match spec §4 line 126 exactly: `category, subcategory, scale_variable, low_ratio, typical_ratio, high_ratio, confidence, egypt_factor, assumptions, sources`.
-    - **G-A6: PASS** — `projects_clean` 5 rows match Appendix B: Dabaa Nuclear Plant, 6th October Monorail, 13K Housing Units Kafr El Sheikh, East Port Said Logistics Zone, Red Sea Solar Plant.
-    - **G-A7: PASS** — `cleaning_log` 8 rows verbatim against spec §6 lines 176–183 (issue text, rows_affected, action text all match). The "312 cells" / INTEGER 312 nuance loss is the existing flagged observation in `OBSERVATIONS.md`, not a regression.
-  - **Documentation bug fix.** VERIFICATION.md §2 G-A7's "Inputs:" line referenced columns `issue` and `action`, which do not exist in the schema (`db.py` and spec §4 use `issue_category` and `action_taken`). The literal SQL would have errored with `no such column: issue` if anyone had run it. This was a residue of the two-lineage split — VERIFICATION.md was authored on the docs side without ever being run against the actual code from `e525c21`. Fixed in commit `f53c1e1`: input SQL only, golden expected values untouched. Documentation bug surfaced by recovery verification, fixed in scope per Option B.
-- **What's mid-flight:** Nothing in code. Awaiting B's decisions on:
-  - Push strategy — which branch(es) to push to (current session branch, canonical branch, main, or some combination).
-  - Whether to retire `claude/check-status-continue-QT5cm` post-push.
-  - Whether to update `CLAUDE.md` §1's branch field to match whichever branch is chosen canonical post-recovery.
-  - Step B "go" — still NOT YET; `ANTHROPIC_API_KEY` environment setup queued first.
-- **Next concrete step on resume:** Get B's decision on push strategy and branch reconciliation; arrange `ANTHROPIC_API_KEY` to be set in the environment; only then begin Step B work per spec §11 routing criterion.
+    - **G-A4: PASS** — `system_prompt.txt` byte-identical to spec v1.2 Appendix A (extracted between the ``` fences at lines 522–633 of `scraper_bot_demo_spec_v1_2.md`). `diff -u system_prompt.txt /tmp/appendix_a_extracted.txt` returned exit 0. Both files sha256 = `7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01`. 112 lines, 6218 bytes each.
+    - **G-A5: PASS** — `steel_ratios` columns match spec §4 line 126 exactly.
+    - **G-A6: PASS** — `projects_clean` 5 rows match Appendix B.
+    - **G-A7: PASS** — `cleaning_log` 8 rows verbatim against spec §6 lines 176–183.
+  - **Documentation bug fix.** VERIFICATION.md §2 G-A7's "Inputs:" line referenced columns `issue` and `action`, which do not exist in the schema (`db.py` and spec §4 use `issue_category` and `action_taken`). Fixed in commit `f53c1e1`: input SQL only, golden expected values untouched.
+  - **HANDOFF update for recovery.** Committed as `9206960`.
+  - **Push consolidation.** With B's authorization, pushed `9206960` to origin as fast-forward updates of both `claude/ezz-steel-scraper-step1-yQejR` (was `e525c21`) and `main` (was `02a3958`). No force-pushes used. Local checked out onto canonical branch tracking origin. Session branch `claude/check-status-continue-QT5cm` deleted locally; remote ref was already absent. End state at consolidation: `origin/main` and `origin/claude/ezz-steel-scraper-step1-yQejR` both at `9206960`.
+  - **Environment setup (python-dotenv path).**
+    - `requirements.txt` extended from 7 to 8 pinned packages: added `python-dotenv==1.0.1`. This addition is a B-approved exception to CLAUDE.md §3's "no new packages without asking" rule. The drift signal in VERIFICATION.md §6 (requirements.txt line count 7 → 8) is triggered and resolved by B's explicit approval.
+    - `load_dotenv()` wired into `main.py` and `chat.py` as their first two content lines (those files were empty stubs from Step A; this is their first real content).
+    - `.env.example` committed at repo root with three placeholders from spec v1.2 §3 Configuration (`ANTHROPIC_API_KEY=`, `SQLITE_PATH=scraperbot.db`, `FROZEN_MODE=false`) plus a leading comment instructing copy-to-`.env`. Safe to commit (no secrets).
+    - `.gitignore` was already excluding `.env` from Step A scaffolding (line 7); no edit needed. `.env.example` is correctly NOT ignored. Verified with `git check-ignore .env` (exit 0, prints `.env`) and `git check-ignore .env.example` (exit 1, no output).
+    - All four staged files committed as `10ea7648`. The original step-7 plan listed five paths (incl. `.gitignore`) but `.gitignore` was a no-op stage because Step A had already excluded `.env`. The commit message phrasing "`.gitignore` covers `.env`" remains accurate; the audit shape is otherwise preserved.
+    - **Step A re-verification post-env-setup.** G-A1–G-A7 re-run against rebuilt `scraperbot.db`, all PASS unchanged. `system_prompt.txt` sha256 unchanged (`7bbf9e06…`).
+    - **Local `.env` created** (untracked, gitignored). `git status --porcelain` empty after creation; `git check-ignore .env` confirms ignored.
+    - **API key load test PASS.** `python -c "from dotenv import load_dotenv; load_dotenv(); …"` reports `set, prefix=sk-ant-...`.
+    - **Anthropic ping PASS.** Single minimal call to `claude-haiku-4-5-20251001`, max_tokens=10, prompt="ping": HTTP 200, stop_reason=max_tokens, input_tokens=8, output_tokens=10. Key is valid, env wiring works end-to-end.
+- **What's mid-flight:** One unpushed commit on `claude/ezz-steel-scraper-step1-yQejR`: `10ea7648` (env setup). HANDOFF update for env setup is being committed at session end. Awaiting B's authorization to push these two commits to origin (canonical + main fast-forward, same pattern as the recovery consolidation), then "go" for Step B.
+- **Next concrete step on resume:** Push the env-setup commits per B's authorization. Then begin Step B: `get_dataset` route + OpenAPI slice + Anthropic translator + live Claude routing call per spec §11 criterion #2. `load_dotenv()` is already in `main.py` and `chat.py`, so any module that imports those (or that calls `load_dotenv()` itself) sees `ANTHROPIC_API_KEY`.
 
 ---
 
 ## Verification status as of session end
 
-- **Last full run:** 2026-05-08, end of recovery session.
-- **Result:** G-A1 through G-A7 all PASS against the post-merge tree, against a freshly rebuilt `scraperbot.db`. Hallucination canaries C1–C5 not yet runnable (require Step B routing). Round-trip tests RT1/RT2 not run this session.
-- **Per-table row counts at end of recovery:**
+- **Last full run:** 2026-05-08, after env-setup commit `10ea7648`.
+- **Result:** G-A1 through G-A7 all PASS against the post-env-setup tree, against a freshly rebuilt `scraperbot.db`. Schema and seed unchanged; results identical to the post-recovery run. Hallucination canaries C1–C5 not yet runnable (require Step B routing). Round-trip tests RT1/RT2 not run this session.
+- **Per-table row counts at end of session:**
 
   ```
   cbe_metrics                    60
@@ -50,18 +58,24 @@ If this file says one thing and the code says another, **the code is the truth**
   ```
 
 - **Failures:** None.
-- **Mid-session VERIFICATION.md edit:** G-A7's input SQL was fixed (commit `f53c1e1`) — column names corrected to match schema. Golden expected values were not modified. Authorized by B as Option B with strict scope control.
+- **Mid-session VERIFICATION.md edit (recovery phase):** G-A7's input SQL was fixed (commit `f53c1e1`) — column names corrected to match schema. Golden expected values were not modified. Authorized by B as Option B with strict scope control.
+- **Drift signal acknowledged:** VERIFICATION.md §6 — `requirements.txt` line count 7 → 8 (added `python-dotenv==1.0.1`). B-approved addition; not a regression.
+- **API key end-to-end:** load test PASS, Anthropic ping PASS (HTTP 200 against `claude-haiku-4-5-20251001`).
 
 ---
 
 ## Open questions for B
 
-- **Push strategy.** Which branch(es) should the recovered state be pushed to? Options include the current session branch (`claude/check-status-continue-QT5cm`), the canonical branch (`claude/ezz-steel-scraper-step1-yQejR`), `main`, or a combination. No push has happened in this session.
-- **Branch reconciliation.** Session is on `claude/check-status-continue-QT5cm`; `CLAUDE.md` §1 names `claude/ezz-steel-scraper-step1-yQejR` as canonical. After push strategy is decided, `CLAUDE.md` §1's branch field may need updating to match the chosen canonical branch. Flag for B's decision; do not edit `CLAUDE.md` autonomously.
-- **`ANTHROPIC_API_KEY`.** Currently `unset` in this session's environment (informational check at session start). Step B blocked until it's set; environment setup is queued before Step B "go."
+- **Push of env-setup commits.** Local is ahead of origin by 2 commits (env setup `10ea7648` + HANDOFF env-setup update). Awaiting authorization to push (same fast-forward pattern as recovery consolidation: canonical + main).
+- **Step B "go".** Pending. All preconditions satisfied: API key works, env wiring works, Step A verified.
+- **`CLAUDE.md` §1 branch field.** Currently names `claude/ezz-steel-scraper-step1-yQejR` as canonical, which now matches the local + origin reality post-consolidation. No edit needed unless B wants to rename the canonical branch.
 - **Demo target date and audience.** Still unset in `CLAUDE.md` §1. Set them so the demo-proximity protocol can engage at the right time.
 
-**(Resolved this session)** 60-vs-12 `cbe_metrics`: KEEP 60. Confirmed by B during recovery session. The 12 monthly values × 5 metrics reading is correct; Appendix B's "12" is a wording slip in the spec, to be fixed in v1.3 of the spec when it lands. The seed count stays at 60 in `db.py`.
+**(Resolved this session)**
+- 60-vs-12 `cbe_metrics`: KEEP 60 — confirmed by B. Wording slip in spec Appendix B to be fixed in v1.3.
+- Push strategy: consolidated to `origin/main` and `origin/claude/ezz-steel-scraper-step1-yQejR` both at `9206960`; session branch retired.
+- Branch reconciliation: local is on `claude/ezz-steel-scraper-step1-yQejR` tracking origin; matches CLAUDE.md §1 canonical name.
+- `ANTHROPIC_API_KEY` env setup: complete — `.env` created and gitignored, load + ping verified.
 
 ---
 
@@ -71,9 +85,10 @@ If this file says one thing and the code says another, **the code is the truth**
 - Do not edit `db.py` seed data to satisfy any future test failure — flag the test instead.
 - Do not commit `scraperbot.db` — it's a build artifact excluded by `.gitignore`.
 - Do not edit `system_prompt.txt` away from spec Appendix A. (sha256 baseline: `7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01`.)
-- Do not push any branch or commit without B's explicit authorization — push strategy is still pending.
-- Do not edit `CLAUDE.md` §1's branch field until B decides which branch is canonical post-recovery.
-- Do not start Step B logic before B explicitly says "go" and `ANTHROPIC_API_KEY` is confirmed set.
+- Do not commit `.env` under any circumstance — it contains the API key. `.gitignore` covers it; do not remove that exclusion.
+- Do not echo or log the `ANTHROPIC_API_KEY` value to any committed file or to any tool that persists output. Prefix-only checks (`k[:7]`) are the convention.
+- Do not push any branch or commit without B's explicit authorization.
+- Do not start Step B logic before B explicitly says "go."
 
 ---
 
@@ -83,5 +98,5 @@ Most recent at top. Older entries get pruned to the last five — but never dele
 
 | Session # | Date | What got done | What was mid-flight |
 |-----------|------|---------------|---------------------|
-| 2 | 2026-05-08 | Step A recovery via merge of `origin/claude/ezz-steel-scraper-step1-yQejR` (merge commit `641b8d3`); G-A1–G-A7 all PASS against rebuilt `scraperbot.db`; VERIFICATION.md G-A7 SQL fix (commit `f53c1e1`, column names only); 60-vs-12 `cbe_metrics` resolved (keep 60) | Awaiting B on push strategy, branch reconciliation, `ANTHROPIC_API_KEY` env setup, Step B "go" |
+| 2 | 2026-05-08 | Step A recovery via merge (commit `641b8d3`); G-A1–G-A7 all PASS; VERIFICATION.md G-A7 SQL fix (`f53c1e1`); HANDOFF recovery update (`9206960`); push consolidation to `origin/main` and `origin/claude/ezz-steel-scraper-step1-yQejR` both at `9206960`; session branch `claude/check-status-continue-QT5cm` retired; env setup with `python-dotenv==1.0.1` (B-approved) committed as `10ea7648`; `.env` created and gitignored; API key load + Anthropic ping (claude-haiku-4-5) PASS end-to-end | 2 unpushed commits on canonical branch (env setup + HANDOFF); awaiting B on push authorization and Step B "go" |
 | 1 | 2026-04-30 | Step A scaffolding (6 files, 609 insertions, commit `e525c21`); v1.1 spec removed (`4fb559e`); 9 tables seeded | Step B paused awaiting "go" and API key |
