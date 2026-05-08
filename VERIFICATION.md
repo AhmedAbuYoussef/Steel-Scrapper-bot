@@ -90,7 +90,7 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
 ### Test G-A7 — `cleaning_log` matches spec §6 verbatim
 
 - **Exercises:** spec §6
-- **Inputs:** `SELECT issue, rows_affected, action FROM cleaning_log ORDER BY id`
+- **Inputs:** `SELECT issue_category, rows_affected, action_taken FROM cleaning_log ORDER BY id`
 - **Expected output:** 8 rows, each issue/action verbatim from §6 table
 - **Tolerance:** verbatim text match
 - **Source of expected value:** spec §6
