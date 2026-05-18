@@ -10,6 +10,15 @@ B reviews this file periodically and decides which observations become tasks (mo
 
 Most recent at top.
 
+### 2026-05-08 — Spec §3.1 "docstring" wording diverges from implementation reality
+
+- **What I noticed:** Spec §3.1 says "Implementation rule: put each Section 5 description verbatim into the FastAPI route docstring; the translator copies that string into the Anthropic schema with no transformation." Using a Python docstring directly is unsafe: FastAPI splits a docstring on the first newline into `summary` (first line) and `description` (rest). The §5 descriptions are long single-line paragraphs; line-wrapping them in source for readability would silently change the OpenAPI output, breaking the verbatim-preservation guarantee §3.1 itself depends on.
+- **Where:** spec §3.1 (implementation-rule sentence); `main.py` (`GET_DATASET_DESCRIPTION` constant + `description=` decorator parameter).
+- **What I did:** Stored each §5 description as a module-level constant and passed it via `description=` on the route decorator. The constant value goes verbatim into `operation.description` in OpenAPI, then verbatim into the Anthropic tool dict. Verified four-way byte-identical hash (`94228a7e…`): constant ≡ FastAPI OpenAPI ≡ Anthropic tool dict ≡ spec line 142. Flagged in source comment.
+- **Why it might matter:** The pattern is about to be replicated for the other 8 tools in Step C. Doing this 8 more times without spec acknowledgement risks a future reader assuming the docstring wording in §3.1 is authoritative and "correcting" the code back to a broken state.
+- **Recommendation:** Spec v1.3 should amend §3.1 to say "the FastAPI route's OpenAPI `description` field (via `description=` parameter on the route decorator OR a single-line docstring)" — wording that admits both mechanisms but explicitly excludes multi-line docstrings.
+- **Awaiting:** B's call on whether to amend the spec. Flag-don't-act per CLAUDE.md §3 ("on the spec").
+
 ### 2026-04-30 — `cbe_metrics` row-count discrepancy: 60 rows seeded, Appendix B says "12"
 
 - **What I noticed:** Appendix B's "Not in Step 1" note says "Hand-type 12 dummy `cbe_metrics` rows," but spec §4 (`"last 12 months"`), §8 (5 locked metrics), and §11 prompt 5 ("trend over past 12 months") all require 12 monthly values **per metric**. 12 rows total cannot satisfy criterion #6 for prompt 5.
