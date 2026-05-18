@@ -17,22 +17,22 @@ _TABLE_MAP = {
     ("egy_map", "raw"): "projects_raw",
     ("egy_map", "clean"): "projects_clean",
     ("egy_map", "currency_only"): "projects_clean_currency_only",
+    ("cbe", "raw"): "cbe_raw_extractions",
+    ("cbe", "clean"): "cbe_metrics",
 }
 
 
 @app.get("/get_dataset", description=GET_DATASET_DESCRIPTION)
 def get_dataset(source: str, version: str):
-    if source == "cbe":
-        table = "cbe_metrics"
-    elif (source, version) in _TABLE_MAP:
-        table = _TABLE_MAP[(source, version)]
-    else:
+    if (source, version) not in _TABLE_MAP:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown (source, version) combination: ({source!r}, {version!r}). "
                    f"Valid: source=egy_map with version in {{raw, clean, currency_only}}, "
-                   f"or source=cbe with any version.",
+                   f"or source=cbe with version in {{raw, clean}} "
+                   f"(currency_only is not meaningful for CBE metrics).",
         )
+    table = _TABLE_MAP[(source, version)]
     db_path = os.environ.get("SQLITE_PATH", "scraperbot.db")
     con = sqlite3.connect(db_path)
     con.row_factory = sqlite3.Row
