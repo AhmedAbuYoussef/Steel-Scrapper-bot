@@ -10,6 +10,14 @@ B reviews this file periodically and decides which observations become tasks (mo
 
 Most recent at top.
 
+### 2026-05-08 — `runs`-table side effect from stub refresh endpoints constrains verification workflow
+
+- **What I noticed:** `/refresh_egy_map` and `/extract_latest_cbe_bulletin` insert one row each into the `runs` table on every call, even in their Step 1 stub form. This is the correct behavior — the spec's "every action ends up in `cleaning_log` and `runs`" rule from §6 applies to scrape/extract triggers too. But it means that any test or smoke run that hits those endpoints leaves `runs` at >5 rows, which causes G-A3's `runs == 5` baseline to FAIL on the next G-A3 run if `db.py` hasn't been re-run in between.
+- **Where:** `main.py` (`refresh_egy_map`, `extract_latest_cbe_bulletin`, both use `_record_run()`); `VERIFICATION.md` §2 G-A3; this session's smoke test left `runs` at 7 rows after Step C.
+- **Why it might matter:** A future session that runs verification without rebuilding the DB first will see G-A3 FAIL on the `runs` count and may mistake it for a regression. The fix is workflow discipline, not code change — the endpoint behavior is correct.
+- **What I did:** Documented the verification workflow: `python db.py` first (rebuilds `scraperbot.db` from scratch), then run tests / smoke / criterion #4. Every time. This needs to be the standard order whenever G-A3 is in scope. Recommend codifying in a `Makefile` target or a short `scripts/verify.sh` wrapper at some later cleanup step — flag-don't-act.
+- **Awaiting:** B's call on whether to add a thin wrapper script that enforces the order. Not blocking; documenting the ordering rule alongside this observation is enough for now.
+
 ### 2026-05-08 — Spec §3.1 "docstring" wording diverges from implementation reality
 
 - **What I noticed:** Spec §3.1 says "Implementation rule: put each Section 5 description verbatim into the FastAPI route docstring; the translator copies that string into the Anthropic schema with no transformation." Using a Python docstring directly is unsafe: FastAPI splits a docstring on the first newline into `summary` (first line) and `description` (rest). The §5 descriptions are long single-line paragraphs; line-wrapping them in source for readability would silently change the OpenAPI output, breaking the verbatim-preservation guarantee §3.1 itself depends on.
