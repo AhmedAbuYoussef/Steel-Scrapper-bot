@@ -97,16 +97,26 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
 
 ---
 
-## 3. Step B golden tests (to be added when Step B starts)
+## 3. Step B golden tests
 
-Per spec §11, Step B introduces criterion #2 (live Claude routing call). The tests for Step B should at minimum cover:
+### Test G-B1 — OpenAPI → Anthropic round-trip translation per tool
 
-- The `/get_dataset` route accepts the documented input shape and returns the documented response shape
-- The OpenAPI slice describes only what's in scope for Step B (no stub routes for later steps)
-- The Anthropic translator handles a known-good prompt and returns a structured response
-- The translator surfaces API errors cleanly rather than swallowing them
+- **Exercises:** spec §3.1 (verbatim description preservation), §3.2 (optional vs required handling), Appendix B done criterion #2 sub-bullets (a)-(c).
+- **Inputs:** `python -m pytest tests/test_round_trip.py -v`. The test parametrizes over the `TOOLS` registry in that file; one entry per FastAPI route, each row pinning (path, spec line number for §5 description, expected `{name: type}` properties, expected `required` list). The test fixture spins up the FastAPI app via `TestClient`, fetches `/openapi.json`, runs `chat.openapi_to_anthropic_tool` on the slice for that route, and asserts:
+  - tool `description` is byte-identical to the §5 paragraph at the registry's line number (with the `> ` blockquote prefix stripped). Verified by `==` plus sha256 cross-check.
+  - `input_schema.properties` types map exactly matches the registry expectation; each property has only the key `"type"`.
+  - `input_schema.required` sorted matches the registry expectation sorted (catches both missing required params and defaulted params leaking into `required[]`).
+- **Expected output:** exit 0; one PASS per registered tool. The registry grows as Step C adds the remaining 8 tools.
+- **Tolerance:** zero. Any byte-level drift on a tool's description, any extra/missing parameter, any required/optional mismatch fails the suite and halts the demo path.
+- **Source of expected values:** the registry in `tests/test_round_trip.py` (paths, expected types, expected required); spec §5 (descriptions, by line number).
+- **Notes:**
+  - The test is the codified version of the manual round-trip done by hand for Appendix B done criterion #2 on `get_dataset`. After that initial manual pass, all further tool additions are guarded by this test rather than re-verified by hand.
+  - Live Claude routing (criterion #2's final sub-bullet) is NOT covered here — that requires an API call. The translator output is what the routing call consumes, so the live test was used once for `get_dataset` to validate the pattern; from then on, this static test is the regression net.
 
-(Add explicit golden tests here as they're written.)
+### Future Step B tests (to be added if needed)
+
+- Round-trip on additional routing-critical content (operation IDs, response shapes) if it becomes relevant.
+- Failure-mode tests: the translator surfaces a `KeyError` cleanly when given a malformed slice; the FastAPI route surfaces a 400 on unknown `(source, version)`.
 
 ---
 
