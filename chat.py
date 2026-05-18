@@ -4,6 +4,15 @@ load_dotenv()
 from anthropic import Anthropic
 
 
+def _param_type(schema):
+    if "type" in schema:
+        return schema["type"]
+    for branch in schema.get("anyOf", []):
+        if branch.get("type") != "null":
+            return branch["type"]
+    raise ValueError(f"cannot extract scalar type from schema: {schema!r}")
+
+
 def openapi_to_anthropic_tool(openapi_doc, path, method="get"):
     operation = openapi_doc["paths"][path][method]
     properties = {}
@@ -12,7 +21,7 @@ def openapi_to_anthropic_tool(openapi_doc, path, method="get"):
         if param.get("in") != "query":
             continue
         name = param["name"]
-        properties[name] = {"type": param["schema"]["type"]}
+        properties[name] = {"type": _param_type(param["schema"])}
         if param.get("required", False):
             required.append(name)
     return {

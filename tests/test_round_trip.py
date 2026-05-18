@@ -35,10 +35,27 @@ from main import app  # noqa: E402
 SPEC_PATH = ROOT / "scraper_bot_demo_spec_v1_2.md"
 
 
+_PROJECTS_FILTER_PROPS = {
+    "governorate":  "string",
+    "category":     "string",
+    "eta_year_min": "integer",
+    "eta_year_max": "integer",
+    "cost_min_egp": "number",
+    "cost_max_egp": "number",
+}
+
 TOOLS = [
     # (path, spec_line, props, required)
     # spec_line is 1-indexed; points to the "> ..." blockquote in spec section 5.
-    ("/get_dataset", 142, {"source": "string", "version": "string"}, ["source", "version"]),
+    ("/get_dataset",                  142, {"source": "string", "version": "string"}, ["source", "version"]),
+    ("/get_cleaning_log",             145, {"source": "string"},                       ["source"]),
+    ("/query_projects",               148, _PROJECTS_FILTER_PROPS,                     []),
+    ("/estimate_steel_total",         151, _PROJECTS_FILTER_PROPS,                     []),
+    ("/query_cbe_trend",              154, {"metric": "string", "period_start": "string", "period_end": "string"}, ["metric", "period_start", "period_end"]),
+    ("/compare_cbe_periods",          157, {"metric": "string", "period_a":     "string", "period_b":   "string"}, ["metric", "period_a",     "period_b"]),
+    ("/refresh_egy_map",              160, {}, []),
+    ("/extract_latest_cbe_bulletin",  163, {}, []),
+    ("/get_run_status",               166, {}, []),
 ]
 
 
