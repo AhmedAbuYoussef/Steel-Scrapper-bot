@@ -8,10 +8,15 @@ If this file says one thing and the code says another, **the code is the truth**
 
 ## Last session summary
 
-- **Session ended:** 2026-05-08, after Step B + Step B settle-up + Step C / Appendix B done criterion #3 (all 9 tools landed)
-- **Why ended:** All nine §5 FastAPI tools implemented and round-trip validated by codified pytest. Criterion #3 spot-check confirms `query_projects` and `estimate_steel_total` have all six filters optional. Functional smoke test passes on every endpoint. Awaiting B on push and on "go" for Appendix B done criterion #4 (HTTP test script) and #5 (Streamlit chat UI).
+- **Session ended:** 2026-05-08, after Appendix B done criterion #4 complete (HTTP test script). Step C commits and the prior Step B settle-up commits have all been pushed to origin (canonical + main).
+- **Why ended:** Criterion #4 done and verified: `scripts/test_endpoints.py` exercises all 9 §5 tools over real HTTP against a live uvicorn and reports per-endpoint PASS/FAIL with exit-code semantics. 16/16 cases PASS against a fresh DB. Awaiting B's "go" for criterion #5 (Streamlit chat UI) and criterion #6 (7 canned prompts), which are separate gates and the biggest remaining surface area.
 - **What got done:**
-  - **Push consolidation.** Pushed the 4 commits from the prior Step B / env-setup blocks. `origin/claude/ezz-steel-scraper-step1-yQejR` and `origin/main` both fast-forwarded `9206960..b2c1274`. Same pattern as the recovery consolidation.
+  - **Push consolidations.** Two fast-forward pushes this session, same pattern as the recovery consolidation:
+    - `9206960..b2c1274` (4 commits: env setup + Step B + HANDOFF round)
+    - `b2c1274..4359c76` (5 commits: CBE fix + G-B1 pytest + Finding 2 OBSERVATIONS + Step C + HANDOFF round)
+    - `origin/claude/ezz-steel-scraper-step1-yQejR` and `origin/main` both at `4359c76` after the second push.
+  - **OBSERVATIONS entry — runs-table side effect from stub refresh endpoints.** `/refresh_egy_map` and `/extract_latest_cbe_bulletin` write a row to `runs` on every call, per the spec §6 architectural rule ("every action ends up in `cleaning_log` and `runs`"). This is correct behavior, not a bug — but it means G-A3's `runs == 5` baseline FAILs on any G-A3 run that happens after a smoke / criterion-#4 run without rebuilding the DB first. Documented the verification workflow: `python db.py` first, then any test that hits live endpoints. Codifying as a wrapper script is a flag-don't-act follow-up. Commit `7a4378d`.
+  - **Criterion #4 — HTTP test script (`scripts/test_endpoints.py`).** Hits all 9 §5 tools over real HTTP at `http://127.0.0.1:8000` (assumes uvicorn already running; does not auto-start). Uses `httpx` (already in `requirements.txt` from Step A). 16 cases across 9 endpoints — `/get_dataset` has 6 variants (each valid `(source, version)` plus the 400 error path), the rest 1–2 each. Each case asserts both HTTP status and a shape predicate (row count or required dict keys). Prints PASS/FAIL per case with a one-line response shape summary, exits 0 if all pass else 1. Header docstring documents the run sequence per the OBSERVATIONS workflow note.
   - **Step B settle-up — FINDING 1 fix (CBE branch in `get_dataset`).** Original code returned `cbe_metrics` for `source="cbe"` regardless of `version`, ignoring the spec's intent. Restructured the route to use the unified `_TABLE_MAP` for all `(source, version)` combinations:
     - `("cbe", "raw")` → `cbe_raw_extractions`
     - `("cbe", "clean")` → `cbe_metrics`
@@ -45,25 +50,46 @@ If this file says one thing and the code says another, **the code is the truth**
     ```
   - **Criterion #3 spot-check.** Inspected fresh `/openapi.json`: `query_projects` and `estimate_steel_total` each have all six filter parameters with `required: false`. Zero defaulted params marked required. PASS.
   - **Functional smoke test (not part of formal criteria, included for confidence).** Invoked all 9 endpoints via `TestClient`. All HTTP 200, sensible row counts: get_dataset egy_map/raw → 5 rows; get_dataset cbe/clean → 60 rows; get_cleaning_log egy_map → 8 rows; query_projects (no filter) → 5 rows; query_projects (governorate="Port Said") → 1 row; estimate_steel_total returns expected dict shape; query_cbe_trend(usd_egp_rate, 2025-04..2026-03) → 12 rows; compare_cbe_periods returns expected dict; refresh/extract stubs return their run records; get_run_status → 7 rows (5 seeded + 2 from the stub calls just made).
-  - **Step C commit:** `0ee06b3`.
-- **What's mid-flight:** Five unpushed commits on `claude/ezz-steel-scraper-step1-yQejR`:
-  - `b014654` get_dataset CBE branch fix
-  - `b484995` round-trip pytest + G-B1 + pytest dep
-  - `2f5629b` OBSERVATIONS Finding 2
-  - `0ee06b3` Step C implementation (8 tools)
-  - `<new>` this HANDOFF update (committing now)
-  - Awaiting B on push (same fast-forward pattern as recovery + Step B). Then "go" for Appendix B done criterion #4 (HTTP test script) and criterion #5 (Streamlit chat UI) — separate authorization required per B's note.
-- **Next concrete step on resume:** Push the 5 unpushed commits, then await B's "go" for criterion #4. Criterion #4 is a thin pytest or shell script that hits each of the 9 endpoints via HTTP (not TestClient) and asserts sensible responses — should be quick given the smoke test already passed via TestClient. Criterion #5 (Streamlit chat UI) is the larger remaining task.
+  - **Step C commit:** `0ee06b3`. **Criterion #4 commit:** `<new>` (this HANDOFF round + `scripts/test_endpoints.py`).
+  - **Criterion #4 live run.** Sequence: `rm scraperbot.db && python db.py` (fresh `runs=5`), then `uvicorn main:app` on port 8000, then `python scripts/test_endpoints.py`. Result:
+    ```
+    Hitting http://127.0.0.1:8000
+    ==========================================================================================
+      PASS  get_dataset egy_map raw                 HTTP 200  list, rows=5
+      PASS  get_dataset egy_map clean               HTTP 200  list, rows=5
+      PASS  get_dataset egy_map currency            HTTP 200  list, rows=5
+      PASS  get_dataset cbe raw                     HTTP 200  list, rows=5
+      PASS  get_dataset cbe clean                   HTTP 200  list, rows=60
+      PASS  get_dataset cbe currency (400)          HTTP 400  dict, keys=['detail']
+      PASS  get_cleaning_log egy_map                HTTP 200  list, rows=8
+      PASS  query_projects no filter                HTTP 200  list, rows=5
+      PASS  query_projects Port Said                HTTP 200  list, rows=1
+      PASS  estimate_steel_total no filter          HTTP 200  dict, keys=[total_tons_*, top_contributors, insufficient_data_count]
+      PASS  estimate_steel_total energy             HTTP 200  dict, keys=[same]
+      PASS  query_cbe_trend usd_egp_rate            HTTP 200  list, rows=12
+      PASS  compare_cbe_periods usd_egp             HTTP 200  dict, keys=[metric, period_a, period_b, absolute_difference, percent_change]
+      PASS  refresh_egy_map (stub)                  HTTP 200  dict, keys=[run_id, component, status, ...]
+      PASS  extract_latest_cbe_bulletin             HTTP 200  dict, keys=[same]
+      PASS  get_run_status                          HTTP 200  list, rows=7
+    ==========================================================================================
+    PASS — 16/16 cases
+    ```
+    Exit 0. Post-run `runs` count is 7 (5 seeded + 2 from the stub endpoints), expected per the OBSERVATIONS workflow note — rebuild the DB before re-running G-A3.
+- **What's mid-flight:** Two unpushed commits on `claude/ezz-steel-scraper-step1-yQejR`:
+  - `7a4378d` OBSERVATIONS workflow note
+  - `<new>` criterion #4 script + HANDOFF update (committing now)
+- **Next concrete step on resume:** Push the 2 commits (same FF pattern). Then await B's explicit "go" for criterion #5 (Streamlit chat UI) — the biggest surface-area task remaining and the gate B has flagged for separate review. Criterion #6 (the 7 canned demo prompts producing non-error responses) sits on top of criterion #5.
 
 ---
 
 ## Verification status as of session end
 
-- **Step A (G-A1–G-A7):** all PASS. Last run during env setup (2026-05-08). Schema and seed unchanged since. `system_prompt.txt` sha256 baseline unchanged.
+- **Step A (G-A1–G-A7):** all PASS. Last run during env setup (2026-05-08). Schema and seed unchanged since. `system_prompt.txt` sha256 baseline unchanged. **Workflow note:** re-run `python db.py` before re-running G-A3 — the `runs == 5` baseline is sensitive to any session that hit `/refresh_egy_map` or `/extract_latest_cbe_bulletin`.
 - **Step B (G-B1 round-trip):** 9/9 PASS. Codified as `tests/test_round_trip.py`; runs in 0.67s.
 - **Criterion #3 spot-check:** PASS — `query_projects` and `estimate_steel_total` filters all optional.
+- **Criterion #4 (HTTP test script):** 16/16 cases PASS via `scripts/test_endpoints.py` against fresh DB + live uvicorn on port 8000.
 - **Failures:** None.
-- **Drift signals:** `requirements.txt` 7 → 9 lines (added `python-dotenv==1.0.1` and `pytest==8.3.4`, both B-approved). `main.py` grew from 41 to 256 lines (8 new routes + helpers). `chat.py` grew from 33 to 44 lines (anyOf helper). Both expected for Step C scope.
+- **Drift signals:** `requirements.txt` 7 → 9 lines (added `python-dotenv==1.0.1` and `pytest==8.3.4`, both B-approved; B has noted the next dep gets the explicit-ask treatment regardless of how implicit the task directive seems). `main.py` ~256 lines (9 routes + helpers). `chat.py` ~44 lines (translator + anyOf helper + `route_once`).
 - **Hashes pinned:**
   - `system_prompt.txt` (spec Appendix A): `7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01`
   - `GET_DATASET_DESCRIPTION` (spec §5 line 142, with trailing `\n` for diff alignment): `94228a7e5127b96b95149f27095b284623f64c607d8e89aea8f816a72ec8c8dc`
@@ -73,10 +99,10 @@ If this file says one thing and the code says another, **the code is the truth**
 
 ## Open questions for B
 
-- **Push the 5 new commits.** Same fast-forward pattern (canonical + main).
-- **"Go" for Appendix B criterion #4 (test script).** A pytest or shell script that exercises each of the 9 endpoints via real HTTP (uvicorn) and asserts a sensible response. The TestClient smoke test in this session is a cheap proxy; the criterion wants the live-HTTP form.
-- **"Go" for Appendix B criterion #5 (Streamlit chat UI).** Standalone bot using `st.chat_input`, system prompt from `system_prompt.txt`, tool definitions auto-loaded from FastAPI's OpenAPI via the validated translator. Welcome message + four suggested-prompt buttons.
-- **Spec v1.3 amendment for §3.1 wording** (OBSERVATIONS entry 2026-05-08). Flag-don't-act; awaiting B's call.
+- **Push the 2 new commits.** `7a4378d` (OBSERVATIONS workflow note) + criterion #4 commit. Same FF pattern (canonical + main).
+- **"Go" for Appendix B criterion #5 (Streamlit chat UI).** Standalone bot using `st.chat_input`, system prompt from `system_prompt.txt`, tool definitions auto-loaded from FastAPI's OpenAPI via the validated translator. Welcome message + four suggested-prompt buttons. B flagged this as the largest surface-area task remaining and the gate that needs its own review checkpoint before kickoff.
+- **"Go" for criterion #6 (canned prompts).** All seven §11 prompts must produce a non-error response on dummy data. Sits on top of #5; can't run until the UI is wired.
+- **Spec v1.3 amendments** (two OBSERVATIONS entries dated 2026-05-08). Flag-don't-act; awaiting B's call on (a) §3.1 docstring wording, (b) the runs-table side-effect workflow note (whether to codify as a wrapper script).
 - **Demo target date and audience.** Still unset in `CLAUDE.md` §1.
 
 ---
@@ -90,8 +116,9 @@ If this file says one thing and the code says another, **the code is the truth**
 - Do not edit any `GET_<TOOL>_DESCRIPTION` constant away from spec §5. The G-B1 pytest will catch drift, but treat any FAIL there as "the spec changed or someone broke verbatim preservation" — not as "the test is wrong."
 - Do not commit `.env`; do not echo `ANTHROPIC_API_KEY` to any committed file.
 - Do not paraphrase, truncate, or auto-summarize any spec §5 tool description.
-- Do not add new packages without B approval. Currently approved beyond the original 7: `python-dotenv==1.0.1`, `pytest==8.3.4`.
-- Do not start Appendix B criterion #4 or #5 before B explicitly says "go" for each — they are separate gates.
+- **Do not add new packages without an explicit ask, even when the task directive obviously implies one** (B's NOTE 1 on 2026-05-08; the inference path is closed). Currently approved beyond the original 7: `python-dotenv==1.0.1`, `pytest==8.3.4`.
+- Do not run live-endpoint tests (criterion #4 script, smoke tests, anything hitting `/refresh_egy_map` or `/extract_latest_cbe_bulletin`) without rebuilding `scraperbot.db` from `db.py` first. The stub endpoints write to `runs` and the G-A3 baseline (`runs == 5`) will FAIL otherwise.
+- Do not start Appendix B criterion #5 or #6 before B explicitly says "go" — they are separate gates and #5 needs a kickoff review per B.
 - Do not push any branch without B's explicit authorization.
 
 ---
@@ -102,6 +129,7 @@ Most recent at top. Older entries get pruned to the last five — but never dele
 
 | Session # | Date | What got done | What was mid-flight |
 |-----------|------|---------------|---------------------|
+| 5 | 2026-05-08 | Pushed Step C commits to canonical + main (`b2c1274..4359c76`); OBSERVATIONS entry on runs-table workflow (`7a4378d`); Appendix B criterion #4 — `scripts/test_endpoints.py` HTTP test runner against live uvicorn; 16/16 cases PASS against a fresh DB; criterion #4 commit + HANDOFF round | 2 unpushed commits; awaiting B on push and on "go" for criterion #5 (Streamlit UI) — flagged as the gate that needs its own kickoff review |
 | 4 | 2026-05-08 | Step B settle-up (CBE branch fix `b014654`, OBSERVATIONS Finding 2 `2f5629b`, round-trip pytest G-B1 `b484995`); Step C / Appendix B criterion #3 — all 8 remaining §5 tools implemented (`0ee06b3`), translator updated for Optional/`anyOf` params, all 9 tools PASS round-trip pytest, criterion #3 filter-optionality spot-check PASS, functional smoke test on all 9 endpoints PASS; pushed prior Step B commits to canonical + main | 5 unpushed commits; awaiting B on push and on "go" for criterion #4 (HTTP test script) and #5 (Streamlit UI) |
 | 3 | 2026-05-08 | Step B / Appendix B criterion #2: `get_dataset` route, translator + `route_once` in `chat.py`, round-trip validation PASS (description byte-identical to spec §5, sha256 `94228a7e…`), live routing test PASS via `claude-haiku-4-5` | 4 unpushed commits; awaiting B on push and Step C / criterion #3 |
 | 2 | 2026-05-08 | Step A recovery via merge (`641b8d3`); G-A1–G-A7 all PASS; VERIFICATION.md G-A7 SQL fix (`f53c1e1`); HANDOFF recovery update (`9206960`); push consolidation to `origin/main` and `origin/claude/ezz-steel-scraper-step1-yQejR` both at `9206960`; session branch retired; env setup with `python-dotenv==1.0.1` committed as `10ea7648`; `.env` created and gitignored; API key load + Anthropic ping PASS end-to-end | 2 unpushed commits; awaiting B on push and Step B "go" |
