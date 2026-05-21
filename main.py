@@ -7,8 +7,23 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 
 app = FastAPI(title="EZZ Steel Scraper Bot")
+
+# Spec §3 "Single source of truth": the system prompt lives in one file
+# inside the FastAPI service; both clients (standalone bot, Fantomaas) load
+# it from here. include_in_schema=False keeps this off /openapi.json so it
+# does NOT appear in the Anthropic tool registry — it's a config endpoint,
+# not a tool. The round-trip pytest (G-B1) only iterates the 9 §5 tools,
+# so this addition does not affect it.
+_SYSTEM_PROMPT_PATH = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
+
+
+@app.get("/system_prompt", include_in_schema=False, response_class=PlainTextResponse)
+def system_prompt():
+    with open(_SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 # Each description below is verbatim from scraper_bot_demo_spec_v1_2.md §5.
