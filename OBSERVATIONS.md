@@ -10,6 +10,15 @@ B reviews this file periodically and decides which observations become tasks (mo
 
 Most recent at top.
 
+### 2026-05-21 — Lost work from prior session: halt-before-push across container boundary
+
+- **What I noticed:** A prior session built Appendix B criterion #5 (Streamlit chat UI + `/system_prompt` endpoint), did the CLAUDE.md/DEMO_RUNBOOK doc alignment from "five locked prompts" → "seven canned (five rehearsed)", and committed three commits on top of `7894cb2` (reported by B as `00f859c`, `487a496`, `0eceda3`). That session halted for B review with the commits unpushed. The container was then reclaimed before B could push. When this session started in a fresh container, none of that work was on origin — `git ls-remote` shows `claude/ezz-steel-scraper-step1-yQejR` and `main` both still at `7894cb2`, and the alleged commits don't exist on any branch. Lost work: criterion #5 build + the doc-alignment commit + the HANDOFF that documented them.
+- **Where:** entire repo state as of session start 2026-05-21. CLAUDE.md and DEMO_RUNBOOK.md still read "five locked prompts" throughout; no `streamlit_app.py` or equivalent UI file; no `/system_prompt` route in `main.py`; HANDOFF.md still ends at criterion #4.
+- **Why it might matter:** The previous protocol was "halt at logical checkpoints with unpushed commits, await B's review, then push." That protocol is **unsafe across container boundaries** — the remote-execution environment B is using reclaims containers after inactivity, and anything not on origin is gone when the next session starts. This will keep happening as long as the protocol stays "halt with unpushed work."
+- **New operating rule (from B, 2026-05-21):** **push-before-halt.** Every commit lands on origin before any halt for B review. Halt for review at the end of logical chunks, but never halt with unpushed commits in the container. If push fails for any reason, that's the halt point — don't continue working with unpushed commits on top of an unpushed commit.
+- **Awaiting:** B is considering whether to codify this in `CLAUDE.md` §3 (Operating rules). Until then, this OBSERVATIONS entry + the explicit instruction in B's 2026-05-21 task brief carry the rule.
+- **What I did:** Logged it here and switched the operating discipline for this session to push-before-halt. Step 4 (redo doc alignment) and step 5 (rebuild criterion #5) of B's 2026-05-21 brief each terminate with a push before any halt point.
+
 ### 2026-05-08 — `runs`-table side effect from stub refresh endpoints constrains verification workflow
 
 - **What I noticed:** `/refresh_egy_map` and `/extract_latest_cbe_bulletin` insert one row each into the `runs` table on every call, even in their Step 1 stub form. This is the correct behavior — the spec's "every action ends up in `cleaning_log` and `runs`" rule from §6 applies to scrape/extract triggers too. But it means that any test or smoke run that hits those endpoints leaves `runs` at >5 rows, which causes G-A3's `runs == 5` baseline to FAIL on the next G-A3 run if `db.py` hasn't been re-run in between.
