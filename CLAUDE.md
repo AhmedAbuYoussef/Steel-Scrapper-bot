@@ -7,8 +7,8 @@ This file is the contract between B and Claude Code for the ezz-steel-scraper-st
 ## 1. Project identity
 
 - **Project name:** ezz-steel-scraper-step1
-- **One-sentence purpose:** A demo scraper bot for EZZ Steel + CBE data, with five locked prompts the audience can run against a SQLite store of cleaned project data, CBE metrics, and steel ratios.
-- **Spec (single source of truth for scope and behavior):** `scraper_bot_demo_spec_v1_2.md` — sections 4 (tables), 6 (cleaning log), 8 (locked metrics), 10, 11 (the five prompts), Appendix A (system prompt), Appendix B (data fixtures). v1.1 was deleted in commit `4fb559e` and is no longer authoritative.
+- **One-sentence purpose:** A demo scraper bot for EZZ Steel + CBE data, with seven canned prompts (five rehearsed in the live demo) the audience can run against a SQLite store of cleaned project data, CBE metrics, and steel ratios.
+- **Spec (single source of truth for scope and behavior):** `scraper_bot_demo_spec_v1_2.md` — sections 4 (tables), 6 (cleaning log), 8 (locked metrics), 10, 11 (the seven canned prompts), Appendix A (system prompt), Appendix B (data fixtures). v1.1 was deleted in commit `4fb559e` and is no longer authoritative.
 - **Branch:** `claude/ezz-steel-scraper-step1-yQejR`
 - **Time budget remaining:** roughly 5.5–7.5 hours of the original 6–8h budget as of end of Step A.
 - **Phase status:** Step A complete (commit `e525c21`). Step B paused awaiting B's "go" and `ANTHROPIC_API_KEY` confirmation.
@@ -42,7 +42,7 @@ If any of these files are missing, malformed, or contradict each other, **halt a
 
 **On Appendix A (the system prompt).** `system_prompt.txt` must remain byte-identical to Appendix A of the spec, with the one Arabic-script correction you already caught and fixed. Re-verify with a diff before any commit that touches it. A silent system prompt edit is a drift event.
 
-**On formulas and prompt logic.** The five locked prompts in spec §11 are the only behaviors the bot supports for this demo. Do not extend them, do not add a sixth, do not silently change what one of them returns. Each prompt has criteria #1–#6 in the spec — those are the acceptance tests.
+**On formulas and prompt logic.** The seven canned prompts in spec §11 are the only behaviors the bot supports for this demo. Do not extend them, do not add an eighth, do not silently change what one of them returns. Each prompt has criteria #1–#6 in the spec — those are the acceptance tests.
 
 **On uncertainty.** If you are not 70%+ confident in something, say so. Use phrases like "I think" or "based on what I read." Never fabricate a number, a citation, a function signature, or a library API. The Step A reply where you flagged the row-count discrepancy is the model — that's what surfacing uncertainty looks like.
 

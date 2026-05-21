@@ -25,7 +25,7 @@ Once the values are written into a `DEMO_<DATE>_PREP.md` file, set the **Mode fl
 
 ## 1. The demo script
 
-In sequence, what gets shown. The five locked prompts in spec §11 are the spine. Each step has: what B says, what B does, what should appear on screen, what could go wrong.
+In sequence, what gets shown. The seven canned prompts in spec §11 are the canonical scope; the live demo stage script in spec §12 runs five of them (prompts 1, 2, 4, 5, 6) and is the spine of the demo. The other two (prompts 3 and 7) are tested cold but not rehearsed live. Each step has: what B says, what B does, what should appear on screen, what could go wrong.
 
 ### Step 1 — Open the system, show the landing
 - **B says:** Brief framing of what the bot does and what data it sees.
@@ -36,21 +36,21 @@ In sequence, what gets shown. The five locked prompts in spec §11 are the spine
 
 ### Step 2 — Run prompt 1 (per spec §11)
 - **B says:** What the prompt is asking and why this matters for EZZ Steel/CBE.
-- **B does:** Paste prompt 1 from the spec into the input.
+- **B does:** Paste prompt 1 from the spec into the input ("Show me the scraped egy-map data.").
 - **Expected screen:** Bot's response with citations to specific rows in `projects_clean` or `cleaning_log` as applicable.
 - **Failure mode:** Anthropic API timeout — see Card 1. Wrong answer — see Card 2.
 - **Time budget:** 60 seconds.
 
-### Steps 3–6 — Run prompts 2 through 5
-Same pattern. Prompt 5 specifically requires the 60 seeded rows in `cbe_metrics` to produce a 12-month trend. If that's been truncated to 12 rows, prompt 5 will fail — verify before demo.
+### Steps 3–6 — Run prompts 2, 4, 5, 6 (per spec §12 stage script)
+Same pattern. The live demo runs §11 prompts 2, 4, 5, 6 in this order — matching the §12 stage script timeline (1:20, 2:10, 3:20, 4:30). Prompts 3 ("Just fix the currencies, leave the rest.") and 7 ("Which power and energy projects complete in 2025? Combined steel content?") are canonical scope but not rehearsed live; they get tested cold per §15 but stay off-stage. Prompt 5 ("Show lending rates trend for construction sector over past 12 months.") specifically requires the 60 seeded rows in `cbe_metrics` to produce a 12-month trend. If that's been truncated to 12 rows, prompt 5 will fail — verify before demo.
 
 ### Closing
 - **B says:** Summary of what the bot just demonstrated and what's coming in subsequent phases.
 - **Time budget:** 60 seconds.
 
 ### Steps that should NEVER be in this demo:
-- A live Anthropic API call without a pre-recorded fallback for each of the five prompts
-- Any prompt that isn't one of the five locked prompts in §11 (the bot will fail to handle it gracefully unless explicitly tested)
+- A live Anthropic API call without a pre-recorded fallback for each of the five rehearsed prompts
+- Any prompt that isn't one of the seven canned prompts in §11 (the bot will fail to handle it gracefully unless explicitly tested)
 - A piece of UI you finished writing in the last 24 hours
 - Anything where you say "and now let me just quickly..."
 
@@ -59,12 +59,12 @@ Same pattern. Prompt 5 specifically requires the 60 seeded rows in `cbe_metrics`
 ## 2. T-7: One week out
 
 - [ ] Full verification suite passes (every test in `VERIFICATION.md` §2 and §3, plus all canaries in §5)
-- [ ] All five spec §11 prompts run end-to-end successfully against the live bot
+- [ ] All seven spec §11 prompts run end-to-end successfully against the live bot (criterion #6 scope; the live demo only rehearses five of them, but the bot must handle all seven cold)
 - [ ] Demo script run end-to-end at least once, timed
 - [ ] Demo script run end-to-end with one witness present
 - [ ] Every "failure mode" entry below has an actual recovery, not aspirational
 - [ ] Code freeze planned for T-3
-- [ ] Pre-recorded screen captures of all five prompt responses (for fallback)
+- [ ] Pre-recorded screen captures of all five rehearsed prompt responses (for fallback)
 - [ ] Demo machine identified — same machine that will be used live
 - [ ] Backup machine identified, repo cloned, dependencies installed, smoke test passes
 - [ ] `ANTHROPIC_API_KEY` confirmed valid and in environment on both machines
@@ -131,10 +131,10 @@ Each card is designed to be readable in three seconds while a room of people wat
 - **Do:** "That's not the verified output — let me show you the verified version" → switch to fallback
 - **Then:** make a private note. Do not debug live. Move on.
 
-### Card 3 — Audience asks something outside the five prompts
+### Card 3 — Audience asks something outside the seven canned prompts
 - **Symptom:** "Can it also do X?" where X isn't in spec §11
 - **Don't:** improvise — the bot wasn't designed for X
-- **Do:** "This demo covers five locked use cases. X is exactly the kind of expansion that comes in the next phase. Let me note it." → write it visibly. Move on.
+- **Do:** "This demo covers five use cases live (seven in the canonical scope). X is exactly the kind of expansion that comes in the next phase. Let me note it." → write it visibly. Move on.
 
 ### Card 4 — Network fails
 - **Symptom:** no Wi-Fi, hotspot fails, or API unreachable

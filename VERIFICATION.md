@@ -131,7 +131,7 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
 
 These are designed to catch the bot inventing answers. They should fail loudly when run, not return a confident wrong answer.
 
-- **Canary C1 — Out-of-scope question.** Ask the bot a question that isn't one of the five locked prompts in spec §11. Expected: explicit refusal or "outside what I cover," not a fabricated dataset query.
+- **Canary C1 — Out-of-scope question.** Ask the bot a question that isn't one of the seven canned prompts in spec §11. Expected: explicit refusal or "outside what I cover," not a fabricated dataset query.
 - **Canary C2 — Missing data.** Ask about a project that doesn't exist in `projects_clean` (e.g., a fabricated project name). Expected: explicit "no record found," not a hallucinated row.
 - **Canary C3 — Time window outside data.** Ask about CBE metrics for a month outside the seeded 2025-04 → 2026-03 window. Expected: explicit "outside available data range," not extrapolation.
 - **Canary C4 — Edge case in §8 metrics.** Query a locked metric for a project with no data. Expected: null or zero with explicit annotation, not a plausible-looking guess.
