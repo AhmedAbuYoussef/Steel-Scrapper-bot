@@ -10,6 +10,14 @@ B reviews this file periodically and decides which observations become tasks (mo
 
 Most recent at top.
 
+### 2026-05-21 — Stale branch on origin: `claude/verify-docs-alignment-eb34f`
+
+- **What I noticed:** Session 6 (2026-05-21) was started by the task-runner on branch `claude/verify-docs-alignment-eb34f`. B authorized switching to canonical `claude/ezz-steel-scraper-step1-yQejR` for the actual work; both branches were at `7894cb2` at the time of the switch, and all session 6 commits went to canonical (now at `61d0890`). The verify-docs branch on origin is still at `7894cb2` — unchanged, just unused. Local copy of that branch also still exists.
+- **Where:** `refs/heads/claude/verify-docs-alignment-eb34f` on origin; local `claude/verify-docs-alignment-eb34f` tracking it. Confirmed via `git ls-remote origin` at session 6 end.
+- **Why it might matter:** The task-runner uses this branch name as the default development target for sessions invoked with that branch slug; leaving it stale at `7894cb2` while canonical advances will cause future task-runner-launched sessions to start on stale state. Eventually the branch will need to be either (a) fast-forwarded to track canonical, (b) deleted on origin if the task-runner can be reconfigured to use canonical, or (c) left alone if the slug is one-shot anyway.
+- **Why I didn't act:** B explicitly instructed "Don't delete it this session" in the 2026-05-21 follow-up brief. Cleanup is a flag-don't-act item.
+- **Awaiting:** B's call on how to retire it. Possibilities (in order of safety): FF the branch on origin to current canonical HEAD; delete the branch on origin; leave it as a historical marker.
+
 ### 2026-05-21 — Lost work from prior session: halt-before-push across container boundary
 
 - **What I noticed:** A prior session built Appendix B criterion #5 (Streamlit chat UI + `/system_prompt` endpoint), did the CLAUDE.md/DEMO_RUNBOOK doc alignment from "five locked prompts" → "seven canned (five rehearsed)", and committed three commits on top of `7894cb2` (reported by B as `00f859c`, `487a496`, `0eceda3`). That session halted for B review with the commits unpushed. The container was then reclaimed before B could push. When this session started in a fresh container, none of that work was on origin — `git ls-remote` shows `claude/ezz-steel-scraper-step1-yQejR` and `main` both still at `7894cb2`, and the alleged commits don't exist on any branch. Lost work: criterion #5 build + the doc-alignment commit + the HANDOFF that documented them.
