@@ -5,4 +5,4 @@ __pycache__/
 .venv/
 venv/
 .env
-smoke_criterion_5_*.md
+smoke_criterion_5_[0-9]*.md
