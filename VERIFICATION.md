@@ -49,7 +49,7 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
 - **Expected output:** 
 
   ```
-  cbe_metrics                    60
+  cbe_metrics                   120
   cbe_raw_extractions             5
   cleaning_log                    8
   conversations                   3
@@ -61,7 +61,7 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
   ```
 
 - **Tolerance:** exact match
-- **Source of expected value:** Step A handoff; the 60 in `cbe_metrics` is the deliberate deviation pending B's sign-off (see `OBSERVATIONS.md`)
+- **Source of expected value:** Step A handoff, amended by spec v1.3 (24 months × 5 metrics = 120 `cbe_metrics` rows, B-approved 2026-06-12; resolves the Step A 60-vs-12 deviation in `OBSERVATIONS.md`)
 
 ### Test G-A4 — `system_prompt.txt` is byte-identical to spec Appendix A
 
@@ -69,7 +69,8 @@ In Step B, formalize this into `tests/golden/test_step_a.py` using pytest.
 - **Inputs:** `diff system_prompt.txt <(extract Appendix A from spec)`
 - **Expected output:** zero diff
 - **Tolerance:** exact match including whitespace
-- **Source of expected value:** spec Appendix A, lines 522–633 in v1.2
+- **Expected sha256 of `system_prompt.txt`:** `4f1b64d15059e48fd5a43136f8049f3caad461b3e61b24e5d2cdeaa0f987d837` (6404 bytes)
+- **Source of expected value:** spec Appendix A, lines 526–639 in v1.3
 
 ### Test G-A5 — `steel_ratios` has the 10 column names from spec §4
 
@@ -148,13 +149,12 @@ These canaries get run at T-7 and T-3 per `DEMO_RUNBOOK.md`. Any canary returnin
 | Total LOC in `main.py` + `chat.py` + `db.py` | TBD after Step A | TBD | +30% session-over-session triggers review | OK |
 | Number of tables in `scraperbot.db` | 9 | 9 | any change triggers review | OK |
 | Number of `_FILL_IN` or TODO markers in code | 0 (Step A) | TBD | any new TODO must have an `OBSERVATIONS.md` entry | OK |
-| `requirements.txt` line count | 7 | 7 | any change triggers review | OK |
+| `requirements.txt` line count | 9 | 9 | any change triggers review (updated per approved python-dotenv + pytest additions; see CLAUDE.md §3) | OK |
 
 ---
 
 ## 7. Last full verification
 
-- **Date/time:** 2026-04-30 (end of Step A)
-- **Commit:** `e525c21`
-- **Result:** Step A done-criteria all pass (G-A1 through G-A7). Hallucination canaries not yet runnable (require Step B routing).
+- **Date/time:** 2026-06-12 (session 10, pre-commit run on the spec v1.3 working tree on top of `669ba46`)
+- **Result:** G-A1–G-A7 PASS (G-A3 at the new `cbe_metrics = 120` baseline, G-A4 against v1.3 Appendix A sha `4f1b64d1…`); RT1–RT2 PASS; G-B1 round-trip 9/9 PASS (`tests/test_round_trip.py`); criterion #4 16/16 PASS (`scripts/test_endpoints.py`, live uvicorn). DB rebuilt to `runs = 5` baseline after. Hallucination canaries not yet runnable (require criterion #6 scope).
 - **Failures:** none
