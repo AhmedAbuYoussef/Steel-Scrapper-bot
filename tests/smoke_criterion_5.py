@@ -9,7 +9,7 @@ Outputs a single transcript artifact at the repo root named
 `smoke_criterion_5_<ISO_UTC>.md`. Per-button report contains:
 
   - tool-call sequence (tool name + arguments, in order)
-  - final response text (first 500 chars)
+  - full final response text
   - iteration count (number of assistant turns in agent_turn's loop)
   - duration in seconds
   - PASS / FAIL on "non-error response"
@@ -147,10 +147,10 @@ def _format_artifact(
         else:
             out.append("  _(none)_")
         out.append("")
-        out.append("**Final response (first 500 chars):**")
+        out.append("**Final response (full):**")
         out.append("")
         out.append("```")
-        out.append(r["final_text"][:500])
+        out.append(r["final_text"])
         out.append("```")
         out.append("")
         out.append("---")

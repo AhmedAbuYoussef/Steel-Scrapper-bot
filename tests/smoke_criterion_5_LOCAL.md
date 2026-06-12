@@ -85,7 +85,7 @@ Tables (9): cbe_metrics, cbe_raw_extractions, cleaning_log, conversations, proje
 
 table                                 rows
 --------------------------------------------
-cbe_metrics                             60
+cbe_metrics                            120
 cbe_raw_extractions                      5
 cleaning_log                             8
 conversations                            3
@@ -101,7 +101,7 @@ either a db.py drift or a fixture corruption. Compare `db.py` sha256:
 
 ```bash
 sha256sum db.py
-# Expected: b0574b04060533861a39bf436977f179658fe86b65ffb4aa7d95792494884fa1
+# Expected: b4141efb3b408bcb87f6ae6be9840e4d858bc5db694f067fa31d5fed2527dabf
 ```
 
 **Rollback:** `rm -f scraperbot.db`, re-pull, retry.
@@ -148,7 +148,7 @@ curl -s "http://127.0.0.1:$PORT/openapi.json" \
     | python -c "import json,sys; d=json.load(sys.stdin); assert '/system_prompt' not in d['paths'], 'system_prompt leaked into openapi'; print('system_prompt off the schema: OK')"
 
 # /system_prompt body must be byte-identical to system_prompt.txt.
-EXPECTED_SHA=7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01
+EXPECTED_SHA=4f1b64d15059e48fd5a43136f8049f3caad461b3e61b24e5d2cdeaa0f987d837
 RESP_SHA=$(curl -s "http://127.0.0.1:$PORT/system_prompt" | sha256sum | awk '{print $1}')
 FILE_SHA=$(sha256sum system_prompt.txt | awk '{print $1}')
 echo "expected sha: $EXPECTED_SHA"
@@ -160,8 +160,8 @@ echo "verify step: PASS"
 ```
 
 **Expected stable sha256 (system_prompt.txt and /system_prompt body):**
-`7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01`
-(6218 bytes)
+`4f1b64d15059e48fd5a43136f8049f3caad461b3e61b24e5d2cdeaa0f987d837`
+(6404 bytes)
 
 If either sha differs from expected: **stop**, tear down uvicorn, and
 surface — `system_prompt.txt` was supposed to be byte-identical to
@@ -249,12 +249,12 @@ on a local machine (B's, since the remote-execution container has no
 Anthropic API key path). All four §10 suggested-prompt buttons
 returned a non-error response.
 
-Per-button: see transcript file for tool sequence + arguments + first
-500 chars of final response + iteration count + duration.
+Per-button: see transcript file for tool sequence + arguments + full
+final response text + iteration count + duration.
 
 Smoke harness: tests/smoke_criterion_5.py (4b30702).
 DB seed sha: <sha256sum scraperbot.db output>
-system_prompt.txt sha: 7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01
+system_prompt.txt sha: 4f1b64d15059e48fd5a43136f8049f3caad461b3e61b24e5d2cdeaa0f987d837
 EOF
 )"
 git push origin claude/ezz-steel-scraper-step1-yQejR
@@ -270,16 +270,16 @@ git push origin claude/ezz-steel-scraper-step1-yQejR
 
 | Artifact | Expected sha256 | Size |
 |----------|----------------|------|
-| `system_prompt.txt` | `7bbf9e06181160bf9907c1d1f6f535ee6bd2265e1590d0c9f654cb0f56b07d01` | 6218 bytes |
-| `GET /system_prompt` response body | (same as above) | 6218 bytes |
-| `db.py` | `b0574b04060533861a39bf436977f179658fe86b65ffb4aa7d95792494884fa1` | (current) |
+| `system_prompt.txt` | `4f1b64d15059e48fd5a43136f8049f3caad461b3e61b24e5d2cdeaa0f987d837` | 6404 bytes |
+| `GET /system_prompt` response body | (same as above) | 6404 bytes |
+| `db.py` | `b4141efb3b408bcb87f6ae6be9840e4d858bc5db694f067fa31d5fed2527dabf` | (current) |
 
 | Artifact | Expected count |
 |----------|---------------|
 | `/openapi.json` `paths` keys | 9 |
 | `/system_prompt` in `/openapi.json` | absent |
 | `scraperbot.db` tables | 9 |
-| `cbe_metrics` rows | 60 |
+| `cbe_metrics` rows | 120 |
 | `projects_clean` rows | 5 |
 | `cleaning_log` rows | 8 |
 | `runs` rows (post-db.py, pre-smoke) | 5 |
