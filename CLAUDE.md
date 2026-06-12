@@ -46,9 +46,11 @@ If any of these files are missing, malformed, or contradict each other, **halt a
 
 **On uncertainty.** If you are not 70%+ confident in something, say so. Use phrases like "I think" or "based on what I read." Never fabricate a number, a citation, a function signature, or a library API. The Step A reply where you flagged the row-count discrepancy is the model — that's what surfacing uncertainty looks like.
 
-**On dependencies.** `requirements.txt` is pinned at 7 packages (fastapi, uvicorn, streamlit, anthropic, requests, pydantic, httpx). Do not add new packages without asking. Do not bump versions without asking.
+**On dependencies.** `requirements.txt` is pinned at 9 packages (fastapi, uvicorn, streamlit, anthropic, requests, pydantic, httpx, python-dotenv, pytest — the last two were B-approved additions, commits `10ea764` and `b484995`). Do not add new packages without asking. Do not bump versions without asking.
 
 **On commits.** Before any commit, run the verification suite from `VERIFICATION.md`. If it fails, do not commit. Stage by name, not `git add .` — the same discipline you used in Step A. Always confirm `scraperbot.db` is excluded.
+
+**On push-before-halt.** Every commit lands on origin before any halt. If push fails, that IS the halt point — investigate the push failure, do not keep working on top of unpushed commits. Containers are reclaimed after inactivity; anything not on origin is gone when the next session starts. (Rule set by B 2026-05-21 after a lost-work event; see `OBSERVATIONS.md`.)
 
 ---
 
