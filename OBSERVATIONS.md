@@ -10,6 +10,18 @@ B reviews this file periodically and decides which observations become tasks (mo
 
 Most recent at top.
 
+### 2026-06-12 — `runs` fixture row 3 (`cbe_extractor`) says `rows_out=60`, now inconsistent with the 120-row `cbe_metrics` seed
+
+- **What I noticed:** While reseeding `cbe_metrics` to 120 rows per spec v1.3 (Task 3 of B's 2026-06-12 brief), the `RUNS` fixture row 3 in `db.py` (`cbe_extractor`, `rows_out=60`) kept its old value. A 24-month frozen window implies the extraction run would have written 120 rows.
+- **Why I didn't act:** Changing it alters a `runs` fixture value B didn't authorize in the Task 3 scope (which was cbe_metrics only). Cosmetic narrative inconsistency in dummy data; no test reads `rows_out`.
+- **Awaiting:** B's call — update `rows_out` to 120 in a future approved pass, or leave as-is.
+
+### 2026-06-12 — G-A1's "~57 KB" descriptive size is stale after the 120-row reseed
+
+- **What I noticed:** `scraperbot.db` is now 73,728 bytes (~72 KB) after the v1.3 reseed; VERIFICATION.md G-A1 still says "~57 KB". Tolerance there is "file size approximate," but +28% stretches "approximate."
+- **Why I didn't act:** B's Task 4 list explicitly named the only VERIFICATION.md edits authorized ("No other golden values change"); the size figure wasn't on it.
+- **Awaiting:** B's approval to update G-A1's expected size to ~72 KB.
+
 ### 2026-05-21 — Stale branch on origin: `claude/verify-docs-alignment-eb34f`
 
 - **What I noticed:** Session 6 (2026-05-21) was started by the task-runner on branch `claude/verify-docs-alignment-eb34f`. B authorized switching to canonical `claude/ezz-steel-scraper-step1-yQejR` for the actual work; both branches were at `7894cb2` at the time of the switch, and all session 6 commits went to canonical (now at `61d0890`). The verify-docs branch on origin is still at `7894cb2` — unchanged, just unused. Local copy of that branch also still exists.
@@ -51,7 +63,7 @@ Most recent at top.
 - **Where:** `db.py` seed for `cbe_metrics` table; spec Appendix B + §11.
 - **Why it might matter:** If B reads Appendix B as a hard 12-row cap, prompt 5 cannot meet criterion #6 with the current data. If 60 rows is correct, Appendix B should be edited in v1.3 of the spec to say "12 months × 5 metrics = 60 rows."
 - **What I did:** Seeded 60 rows (12 months × 5 metrics, window 2025-04 → 2026-03, plausible monotonic series) and explicitly flagged the deviation in the Step A handoff for B's sign-off.
-- **Awaiting:** B's call — keep 60, or truncate to 12.
+- **Awaiting:** ~~B's call — keep 60, or truncate to 12.~~ **Resolved 2026-06-12:** spec v1.3 (B-authored) sets the window to 24 months × 5 metrics = 120 rows after the session-9 button-4 FAIL showed a year-over-year quarterly comparison needs 15+ months. `db.py` reseeded accordingly; the original 60 rows kept byte-identical, 12 months extended backward (2024-04 → 2025-03).
 
 ### 2026-04-30 — `cleaning_log.rows_affected` column type loses cells-vs-rows nuance
 
