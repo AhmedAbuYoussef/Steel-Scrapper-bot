@@ -42,7 +42,7 @@ In sequence, what gets shown. The seven canned prompts in spec §11 are the cano
 - **Time budget:** 60 seconds.
 
 ### Steps 3–6 — Run prompts 2, 4, 5, 6 (per spec §12 stage script)
-Same pattern. The live demo runs §11 prompts 2, 4, 5, 6 in this order — matching the §12 stage script timeline (1:20, 2:10, 3:20, 4:30). Prompts 3 ("Just fix the currencies, leave the rest.") and 7 ("Which power and energy projects complete in 2025? Combined steel content?") are canonical scope but not rehearsed live; they get tested cold per §15 but stay off-stage. Prompt 5 ("Show lending rates trend for construction sector over past 12 months.") specifically requires the 60 seeded rows in `cbe_metrics` to produce a 12-month trend. If that's been truncated to 12 rows, prompt 5 will fail — verify before demo.
+Same pattern. The live demo runs §11 prompts 2, 4, 5, 6 in this order — matching the §12 stage script timeline (1:20, 2:10, 3:20, 4:30). Prompts 3 ("Just fix the currencies, leave the rest.") and 7 ("Which power and energy projects complete in 2025? Combined steel content?") are canonical scope but not rehearsed live; they get tested cold per §15 but stay off-stage. Prompt 5 ("Show lending rates trend for construction sector over the most recent 12 months of available data.") specifically requires the 120 seeded rows in `cbe_metrics` (24 months × 5 metrics per spec v1.3) to produce a 12-month trend. Prompt 6 ("Compare the industrial production index for Q1 2026 vs Q1 2025.") requires both quarters present in the seeded window — re-validate the quarter labels against the frozen window per spec §11/§14. If the seed window changes, both prompts must be re-validated before demo.
 
 ### Closing
 - **B says:** Summary of what the bot just demonstrated and what's coming in subsequent phases.
@@ -181,4 +181,4 @@ Save as `DEMO_<YYYY-MM-DD>_RETRO.md`. The retros accumulate. Reading the last th
 
 A demo with four prompts that reliably runs end-to-end will land better than a demo with five prompts where the fifth breaks in front of the audience. **Cut features before the demo, not during it.** Anything you're not 95% sure of by T-3 — cut it. The demo is not the place to test things.
 
-For this specific project: prompt 5 (the 12-month trend) depends on the 60 rows in `cbe_metrics` surviving B's sign-off. If B truncates to 12 rows before T-3, prompt 5 must be cut from the demo or rebuilt. Decide early.
+For this specific project: prompt 5 (the 12-month trend) depends on the 120 rows in `cbe_metrics` seeded per spec v1.3 (24 months × 5 metrics, B-approved 2026-06-12). If the seeded window shrinks before T-3, prompts 5 and 6 must be cut from the demo or rebuilt. Decide early.
