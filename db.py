@@ -290,32 +290,58 @@ CBE_RAW_EXTRACTIONS = [
      FROZEN_REFRESH),
 ]
 
-# 12 monthly rows for each of the five locked metrics (Section 8).
-# Window: 2025-04 through 2026-03 inclusive.
+# 24 monthly rows for each of the five locked metrics (Section 8, spec v1.3).
+# Window: 2024-04 through 2026-03 inclusive.
+#
+# v1.3 backward extension (2024-04 → 2025-03): the original 12-month window
+# (2025-04 → 2026-03) was validated by the criterion #5 smoke and stays
+# byte-identical below. The 12 earlier months continue each series' original
+# trend backward in time from its first original value, using a step
+# consistent with that series' average month-over-month delta in the original
+# window (lending rate +0.25 pp per month back; production index −0.7;
+# sector activity −0.6/−0.7 alternating; USD and EUR rates −0.1), rounded to
+# the series' display precision. Hand-typed literals, not computed at runtime.
 PERIODS = [
+    "2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09",
+    "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03",
     "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09",
     "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03",
 ]
 
 CBE_METRIC_SERIES = {
     "construction_lending_rate": (
-        [27.5, 27.5, 27.0, 26.5, 26.5, 26.0, 25.5, 25.5, 25.0, 25.0, 24.75, 24.5],
+        # 2024-04 → 2025-03 (v1.3 backward extension)
+        [30.5, 30.25, 30.0, 29.75, 29.5, 29.25, 29.0, 28.75, 28.5, 28.25, 28.0, 27.75,
+         # 2025-04 → 2026-03 (original Step A window — byte-identical, smoke-validated)
+         27.5, 27.5, 27.0, 26.5, 26.5, 26.0, 25.5, 25.5, 25.0, 25.0, 24.75, 24.5],
         "percent",
     ),
     "industrial_production_index": (
-        [104.1, 105.3, 106.0, 106.8, 107.5, 108.2, 109.0, 109.7, 110.3, 110.9, 111.6, 112.4],
+        # 2024-04 → 2025-03 (v1.3 backward extension)
+        [95.7, 96.4, 97.1, 97.8, 98.5, 99.2, 99.9, 100.6, 101.3, 102.0, 102.7, 103.4,
+         # 2025-04 → 2026-03 (original Step A window — byte-identical, smoke-validated)
+         104.1, 105.3, 106.0, 106.8, 107.5, 108.2, 109.0, 109.7, 110.3, 110.9, 111.6, 112.4],
         "index_2018=100",
     ),
     "construction_sector_activity": (
-        [98.2, 98.9, 99.5, 100.1, 100.8, 101.4, 102.0, 102.7, 103.4, 104.1, 104.9, 105.7],
+        # 2024-04 → 2025-03 (v1.3 backward extension)
+        [90.4, 91.0, 91.7, 92.3, 93.0, 93.6, 94.3, 94.9, 95.6, 96.2, 96.9, 97.5,
+         # 2025-04 → 2026-03 (original Step A window — byte-identical, smoke-validated)
+         98.2, 98.9, 99.5, 100.1, 100.8, 101.4, 102.0, 102.7, 103.4, 104.1, 104.9, 105.7],
         "index_2018=100",
     ),
     "usd_egp_rate": (
-        [48.6, 48.7, 48.9, 49.0, 49.1, 49.2, 49.3, 49.4, 49.5, 49.6, 49.7, 49.8],
+        # 2024-04 → 2025-03 (v1.3 backward extension)
+        [47.4, 47.5, 47.6, 47.7, 47.8, 47.9, 48.0, 48.1, 48.2, 48.3, 48.4, 48.5,
+         # 2025-04 → 2026-03 (original Step A window — byte-identical, smoke-validated)
+         48.6, 48.7, 48.9, 49.0, 49.1, 49.2, 49.3, 49.4, 49.5, 49.6, 49.7, 49.8],
         "EGP_per_USD",
     ),
     "eur_egp_rate": (
-        [52.4, 52.5, 52.7, 52.8, 52.9, 53.0, 53.1, 53.2, 53.3, 53.4, 53.5, 53.6],
+        # 2024-04 → 2025-03 (v1.3 backward extension)
+        [51.2, 51.3, 51.4, 51.5, 51.6, 51.7, 51.8, 51.9, 52.0, 52.1, 52.2, 52.3,
+         # 2025-04 → 2026-03 (original Step A window — byte-identical, smoke-validated)
+         52.4, 52.5, 52.7, 52.8, 52.9, 53.0, 53.1, 53.2, 53.3, 53.4, 53.5, 53.6],
         "EGP_per_EUR",
     ),
 }

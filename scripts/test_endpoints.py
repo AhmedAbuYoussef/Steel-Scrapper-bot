@@ -54,7 +54,7 @@ CASES = [
     ("get_dataset egy_map clean",       "GET", "/get_dataset",                  {"source": "egy_map", "version": "clean"},        200, _is_list_of_len(5)),
     ("get_dataset egy_map currency",    "GET", "/get_dataset",                  {"source": "egy_map", "version": "currency_only"},200, _is_list_of_len(5)),
     ("get_dataset cbe raw",             "GET", "/get_dataset",                  {"source": "cbe",     "version": "raw"},          200, _is_list_of_len(5)),
-    ("get_dataset cbe clean",           "GET", "/get_dataset",                  {"source": "cbe",     "version": "clean"},        200, _is_list_of_len(60)),
+    ("get_dataset cbe clean",           "GET", "/get_dataset",                  {"source": "cbe",     "version": "clean"},        200, _is_list_of_len(120)),
     ("get_dataset cbe currency (400)",  "GET", "/get_dataset",                  {"source": "cbe",     "version": "currency_only"},400, lambda b: "detail" in b and "currency_only" in b["detail"]),
     ("get_cleaning_log egy_map",        "GET", "/get_cleaning_log",             {"source": "egy_map"},                            200, _is_list_of_len(8)),
     ("query_projects no filter",        "GET", "/query_projects",               {},                                               200, _is_list_of_len(5)),
