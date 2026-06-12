@@ -1,6 +1,6 @@
 # Scraper bot guardrails — integration guide
 
-Five files for the `ezz-steel-scraper-step1` repo. Together with the existing `scraper_bot_demo_spec_v1_2.md`, `system_prompt.txt`, and `db.py`, they close the gaps that the cost engine bundle didn't have to worry about (session continuity, demo survival, formal verification, observation discipline).
+Five files for the `ezz-steel-scraper-step1` repo. Together with the existing `scraper_bot_demo_spec_v1_3.md`, `system_prompt.txt`, and `db.py`, they close the gaps that the cost engine bundle didn't have to worry about (session continuity, demo survival, formal verification, observation discipline).
 
 ## What's in this folder
 
@@ -16,7 +16,7 @@ Five files for the `ezz-steel-scraper-step1` repo. Together with the existing `s
 
 Three of the nine generic templates I gave you earlier are redundant for this project because you already have equivalents:
 
-- `PROJECT_BRIEF.md` and `RULEBOOK.md` → your `scraper_bot_demo_spec_v1_2.md` covers both
+- `PROJECT_BRIEF.md` and `RULEBOOK.md` → your `scraper_bot_demo_spec_v1_3.md` covers both
 - `SYSTEM_PROMPT.md` → your `system_prompt.txt` is the canonical artifact
 - `STATE.json` → your `db.py` + `scraperbot.db` is the canonical state
 
@@ -26,7 +26,7 @@ Don't duplicate them. The new `CLAUDE.md` points to the existing files as the so
 
 ### Step 1 — Drop the files into the repo
 
-Place all five files at the root of `ezz-steel-scraper-step1`, alongside `scraper_bot_demo_spec_v1_2.md`. They do not replace anything — nothing in your existing repo gets deleted.
+Place all five files at the root of `ezz-steel-scraper-step1`, alongside `scraper_bot_demo_spec_v1_3.md`. They do not replace anything — nothing in your existing repo gets deleted.
 
 ### Step 2 — Commit them
 

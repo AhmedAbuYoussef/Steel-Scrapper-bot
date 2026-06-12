@@ -1,14 +1,16 @@
-# Fantomaas Scraper Bot — Demo Specification (v1.2)
+# Fantomaas Scraper Bot — Demo Specification (v1.3)
 
-**Version:** v1.2 (locked, supersedes v1.1)
+**Version:** v1.3 (locked, supersedes v1.2)
 **Owner:** B
 **Context:** EZZ Steel internal demo, Fantomaas family
 **Status:** Specification complete, build not started
 
-**Changes from v1.1:**
-- **Section 3 (Architecture):** added explicit requirements for OpenAPI → Anthropic tool schema translation, including correct handling of optional vs required parameters and a mandated round-trip validation on one tool before scaling.
-- **Section 5:** enumerated the six filters for `estimate_steel_total` (was `(filters)`, now matches the `query_projects` signature exactly).
-- **Appendix B:** split done criterion #2 into a round-trip validation step on `get_dataset` alone, then the remaining eight tools using the validated pattern. Subsequent criteria renumbered.
+**Changes from v1.2:**
+- **Section 8, Appendix A (DOMAIN, WELCOME MESSAGE), Appendix B:** CBE metrics window extended from 12 to 24 months (24 months hand-validated and frozen; Step 1 seed becomes 24 months × 5 metrics = 120 rows).
+- **Section 10:** suggested-prompt buttons 3 and 4 reworded to be deterministic against the frozen data window.
+- **Section 11:** prompts 5 and 6 reworded to match; note appended pinning prompt 6's explicit quarter labels to the frozen data window, re-validated at every data freeze.
+- **Sections 12 and 14:** stage-script lines (3:20, 4:30) updated to the new prompt wording; T-24h checklist gains a prompt-6 quarter-label re-validation item.
+- **Appendix A (HARD CONSTRAINTS):** new NEVER rule — no approximating, interpolating, or substituting partial-window data when a requested period falls outside the available data window.
 
 ---
 
@@ -224,7 +226,7 @@ If back-test median error > 25%, the steel feature is removed from v1. Decision 
 - Extraction: rasterize each PDF page, send to Claude vision API with structured-output prompt for the specific tables of interest.
 - Selected metrics list locked at five for v1: `construction_lending_rate`, `industrial_production_index`, `construction_sector_activity`, `usd_egp_rate`, `eur_egp_rate`.
 - Storage: `(metric, period, value, unit, source_pdf, extracted_at)`.
-- For demo: hand-validated last 12 months, frozen.
+- For demo: hand-validated last 24 months, frozen.
 
 ---
 
@@ -247,8 +249,8 @@ Streamlit app. Visible elements:
 - **Suggested prompt buttons** — four clickable, each submits a canned prompt:
   - "Show me the scraped egy-map data"
   - "What infrastructure projects in Port Said involve steel?"
-  - "Construction sector lending rate trend, last 12 months"
-  - "Compare industrial production this quarter vs last year"
+  - "Construction sector lending rate trend, most recent 12 months of available data"
+  - "Compare industrial production: Q1 2026 vs Q1 2025"
 - **Chat history:** standard Streamlit chat layout, persists within session.
 - **Reset button:** clears conversation; recovery if a prompt goes sideways.
 - **Footer:** small text "Data frozen [timestamp]. For live refresh, ask explicitly."
@@ -265,9 +267,11 @@ Tested cold ten times before demo day. Deterministic outputs.
 2. "Clean this dataset."
 3. "Just fix the currencies, leave the rest."
 4. "What infrastructure projects in Port Said involve steel? Estimate total demand."
-5. "Show lending rates trend for construction sector over past 12 months."
-6. "Compare the industrial production index this quarter vs same quarter last year."
+5. "Show lending rates trend for construction sector over the most recent 12 months of available data."
+6. "Compare the industrial production index for Q1 2026 vs Q1 2025."
 7. "Which power and energy projects complete in 2025? Combined steel content?"
+
+Note: prompt 6's explicit quarters are pinned to the frozen data window. Re-validate the quarter labels against the actual frozen window at every data freeze.
 
 **Closing flourish:** open Claude.ai, paste pre-prepared CSV slice (~20 rows of `projects_clean`), ask: "Build me an interactive dashboard with project counts by governorate and a steel-by-category bar chart."
 
@@ -303,15 +307,14 @@ Tested cold ten times before demo day. Deterministic outputs.
 2:50 — "Notice the band. We never give point estimates without bands.
         The methodology for each project is stored alongside the number."
 
-3:20 — Type: "Show me the construction sector lending rate trend over the
-        past 12 months."
+3:20 — Type: "Show lending rates trend for construction sector over the
+        most recent 12 months of available data."
         Bot returns time-series + one-sentence descriptive interpretation.
 
 4:00 — "Same bot, different data source. The CBE bulletin is a PDF —
         I'm using Claude vision to extract the tables I care about."
 
-4:30 — Type: "Compare the industrial production index this quarter vs
-        the same quarter last year."
+4:30 — Type: "Compare the industrial production index for Q1 2026 vs Q1 2025."
 
 5:00 — Pivot: "These same capabilities are available inside Fantomaas as a tool."
         Switch tab to Fantomaas. Type a question requiring this bot's data.
@@ -381,6 +384,7 @@ Then move on. Do not improvise on stage.
 - [ ] Backup DB to USB and second laptop.
 - [ ] System prompt finalized and committed.
 - [ ] All 7 demo prompts tested 10× in a row, deterministic outputs confirmed.
+- [ ] Prompt 6 quarter labels re-validated against the frozen data window.
 - [ ] Steel ratio table validation completed (or feature pulled per Section 7 rule).
 - [ ] CSV slice for closing flourish prepared on desktop.
 - [ ] Demo stage script run through twice end-to-end.
@@ -529,13 +533,15 @@ DOMAIN
 
 Two datasets, locked:
 1. Egyptian state projects: 138 projects from egy-map. Fields: name, category, governorate, expected completion (year/month), area (m² or km), cost (EGP), estimated steel tonnage with confidence band where computable.
-2. CBE monthly metrics: last 12 months. Available metrics: construction_lending_rate, industrial_production_index, construction_sector_activity, usd_egp_rate, eur_egp_rate.
+2. CBE monthly metrics: last 24 months. Available metrics: construction_lending_rate, industrial_production_index, construction_sector_activity, usd_egp_rate, eur_egp_rate.
 
 You have no other data. Do not pretend otherwise.
 
 HARD CONSTRAINTS — NEVER
 
 NEVER fabricate data. If a tool returns nothing, say "that's not in the current snapshot."
+
+NEVER approximate, interpolate, or substitute partial-window data when a requested period falls wholly or partly outside the available data window. State the available window and stop.
 
 NEVER give a steel-tonnage figure without its low/high band and method string. Single numbers without bands are forbidden, even if the user explicitly asks for one.
 
@@ -630,7 +636,7 @@ Brevity over verbosity. One-sentence answer if it suffices. Do not pad.
 
 WELCOME MESSAGE (used as first message in standalone bot only)
 
-"I'm the EZZ Steel Scraper Bot. I cover 138 Egyptian state projects (from egy-map) and 12 months of selected CBE metrics. Data was last refreshed [timestamp]. Try one of the suggestions below or ask anything in scope."
+"I'm the EZZ Steel Scraper Bot. I cover 138 Egyptian state projects (from egy-map) and 24 months of selected CBE metrics. Data was last refreshed [timestamp]. Try one of the suggestions below or ask anything in scope."
 ```
 
 ---
@@ -692,7 +698,7 @@ streamlit run chat.py
 **Not in Step 1:**
 - Real scraping. Don't touch the egy-map Selenium code yet.
 - Real cleaning. Dummy `projects_clean` is hand-typed.
-- CBE PDF extraction. Hand-type 12 dummy `cbe_metrics` rows.
+- CBE PDF extraction. Hand-type 24 months × 5 metrics = 120 dummy `cbe_metrics` rows.
 - Steel estimation logic. Hand-type 5 dummy `tons_estimated` values.
 - Fantomaas integration. Standalone chat UI only.
 - Streamlit dashboard. Step 8.

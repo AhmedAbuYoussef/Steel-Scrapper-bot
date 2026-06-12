@@ -26,7 +26,7 @@ def system_prompt():
         return f.read()
 
 
-# Each description below is verbatim from scraper_bot_demo_spec_v1_2.md §5.
+# Each description below is verbatim from scraper_bot_demo_spec_v1_3.md §5.
 # Per spec §3.1 the strings must survive OpenAPI -> Anthropic translation
 # byte-identical. Stored as module constants and passed via `description=`
 # on each route decorator (NOT as docstrings — FastAPI splits docstrings

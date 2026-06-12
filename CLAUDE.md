@@ -8,7 +8,7 @@ This file is the contract between B and Claude Code for the ezz-steel-scraper-st
 
 - **Project name:** ezz-steel-scraper-step1
 - **One-sentence purpose:** A demo scraper bot for EZZ Steel + CBE data, with seven canned prompts (five rehearsed in the live demo) the audience can run against a SQLite store of cleaned project data, CBE metrics, and steel ratios.
-- **Spec (single source of truth for scope and behavior):** `scraper_bot_demo_spec_v1_2.md` — sections 4 (tables), 6 (cleaning log), 8 (locked metrics), 10, 11 (the seven canned prompts), Appendix A (system prompt), Appendix B (data fixtures). v1.1 was deleted in commit `4fb559e` and is no longer authoritative.
+- **Spec (single source of truth for scope and behavior):** `scraper_bot_demo_spec_v1_3.md` — sections 4 (tables), 6 (cleaning log), 8 (locked metrics), 10, 11 (the seven canned prompts), Appendix A (system prompt), Appendix B (data fixtures). v1.1 was deleted in commit `4fb559e` and is no longer authoritative.
 - **Branch:** `claude/ezz-steel-scraper-step1-yQejR`
 - **Time budget remaining:** roughly 5.5–7.5 hours of the original 6–8h budget as of end of Step A.
 - **Phase status:** Step A complete (commit `e525c21`). Step B paused awaiting B's "go" and `ANTHROPIC_API_KEY` confirmation.
@@ -24,7 +24,7 @@ In this exact order, every session, before any code execution:
 
 1. `CLAUDE.md` (this file)
 2. `HANDOFF.md` — what the previous session ended on
-3. `scraper_bot_demo_spec_v1_2.md` — the spec is the brief and the rulebook combined
+3. `scraper_bot_demo_spec_v1_3.md` — the spec is the brief and the rulebook combined
 4. `VERIFICATION.md` — golden tests and Step A done-criteria
 5. `DEMO_RUNBOOK.md` — only required reading once the demo is within 7 days, otherwise reference-only
 
@@ -36,7 +36,7 @@ If any of these files are missing, malformed, or contradict each other, **halt a
 
 **On scope.** Do exactly what B asks for the current Step. Steps are defined in the spec — do not advance to Step B before B says "go," do not partially start Step C while finishing B, do not "improve" code outside the current step's scope. If you see something that needs fixing in another area, write it to `OBSERVATIONS.md` for B to triage later.
 
-**On the spec.** `scraper_bot_demo_spec_v1_2.md` is locked. Only B edits it. If the spec is wrong or contradicts itself, surface it and ask — do not patch it inline. The 60-rows-vs-12-rows discrepancy you flagged in Step A is exactly the right behavior: deliberate deviation, surfaced explicitly with reasoning, awaiting sign-off.
+**On the spec.** `scraper_bot_demo_spec_v1_3.md` is locked. Only B edits it. If the spec is wrong or contradicts itself, surface it and ask — do not patch it inline. The 60-rows-vs-12-rows discrepancy you flagged in Step A is exactly the right behavior: deliberate deviation, surfaced explicitly with reasoning, awaiting sign-off.
 
 **On data.** `db.py` + `scraperbot.db` is the canonical state. Never edit fixtures to make a test pass — that is the highest-severity violation in this project. If a test fails, the formula or the test is wrong, not the fixture. `scraperbot.db` is a build artifact (excluded via `.gitignore`); regenerate by running `db.py`. Do not commit it.
 
@@ -60,7 +60,7 @@ These are violations regardless of how reasonable they sound in the moment:
 
 - Editing `db.py` seed data to make a test pass
 - Editing `VERIFICATION.md` golden values without explicit user approval
-- Patching `scraper_bot_demo_spec_v1_2.md` to resolve a contradiction (surface it instead)
+- Patching `scraper_bot_demo_spec_v1_3.md` to resolve a contradiction (surface it instead)
 - Editing `system_prompt.txt` away from spec Appendix A
 - Advancing past the current Step without B's explicit "go"
 - Adding a feature, prompt, route, or table the spec doesn't define

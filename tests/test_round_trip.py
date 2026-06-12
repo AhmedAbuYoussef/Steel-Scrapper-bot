@@ -6,7 +6,7 @@ listed in TOOLS, this asserts:
 
   (a) The translator's tool.description is byte-identical to the
       corresponding spec section 5 paragraph (extracted from
-      scraper_bot_demo_spec_v1_2.md by line number, with the leading
+      scraper_bot_demo_spec_v1_3.md by line number, with the leading
       `> ` markdown blockquote prefix stripped).
   (b) Parameter types in input_schema.properties match the expected
       mapping for that tool.
@@ -32,7 +32,7 @@ from chat import openapi_to_anthropic_tool  # noqa: E402
 from main import app  # noqa: E402
 
 
-SPEC_PATH = ROOT / "scraper_bot_demo_spec_v1_2.md"
+SPEC_PATH = ROOT / "scraper_bot_demo_spec_v1_3.md"
 
 
 _PROJECTS_FILTER_PROPS = {
@@ -47,15 +47,15 @@ _PROJECTS_FILTER_PROPS = {
 TOOLS = [
     # (path, spec_line, props, required)
     # spec_line is 1-indexed; points to the "> ..." blockquote in spec section 5.
-    ("/get_dataset",                  142, {"source": "string", "version": "string"}, ["source", "version"]),
-    ("/get_cleaning_log",             145, {"source": "string"},                       ["source"]),
-    ("/query_projects",               148, _PROJECTS_FILTER_PROPS,                     []),
-    ("/estimate_steel_total",         151, _PROJECTS_FILTER_PROPS,                     []),
-    ("/query_cbe_trend",              154, {"metric": "string", "period_start": "string", "period_end": "string"}, ["metric", "period_start", "period_end"]),
-    ("/compare_cbe_periods",          157, {"metric": "string", "period_a":     "string", "period_b":   "string"}, ["metric", "period_a",     "period_b"]),
-    ("/refresh_egy_map",              160, {}, []),
-    ("/extract_latest_cbe_bulletin",  163, {}, []),
-    ("/get_run_status",               166, {}, []),
+    ("/get_dataset",                  144, {"source": "string", "version": "string"}, ["source", "version"]),
+    ("/get_cleaning_log",             147, {"source": "string"},                       ["source"]),
+    ("/query_projects",               150, _PROJECTS_FILTER_PROPS,                     []),
+    ("/estimate_steel_total",         153, _PROJECTS_FILTER_PROPS,                     []),
+    ("/query_cbe_trend",              156, {"metric": "string", "period_start": "string", "period_end": "string"}, ["metric", "period_start", "period_end"]),
+    ("/compare_cbe_periods",          159, {"metric": "string", "period_a":     "string", "period_b":   "string"}, ["metric", "period_a",     "period_b"]),
+    ("/refresh_egy_map",              162, {}, []),
+    ("/extract_latest_cbe_bulletin",  165, {}, []),
+    ("/get_run_status",               168, {}, []),
 ]
 
 
