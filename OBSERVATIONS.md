@@ -17,6 +17,7 @@ Most recent at top.
 - **Why it might matter:** The task-runner uses this branch name as the default development target for sessions invoked with that branch slug; leaving it stale at `7894cb2` while canonical advances will cause future task-runner-launched sessions to start on stale state. Eventually the branch will need to be either (a) fast-forwarded to track canonical, (b) deleted on origin if the task-runner can be reconfigured to use canonical, or (c) left alone if the slug is one-shot anyway.
 - **Why I didn't act:** B explicitly instructed "Don't delete it this session" in the 2026-05-21 follow-up brief. Cleanup is a flag-don't-act item.
 - **Awaiting:** B's call on how to retire it. Possibilities (in order of safety): FF the branch on origin to current canonical HEAD; delete the branch on origin; leave it as a historical marker.
+- **B's call (2026-06-12):** leave it. Retirement is post-criterion-#6 housekeeping — revisit after criterion #6 is signed off. (Note: `git ls-remote origin` from the 2026-06-12 container shows only `claude/ezz-steel-scraper-step1-yQejR` and `main`; the remote-proxy in this environment may be filtering refs, so this is not confirmation the stale branch was deleted.)
 
 ### 2026-05-21 — Lost work from prior session: halt-before-push across container boundary
 
@@ -24,7 +25,7 @@ Most recent at top.
 - **Where:** entire repo state as of session start 2026-05-21. CLAUDE.md and DEMO_RUNBOOK.md still read "five locked prompts" throughout; no `streamlit_app.py` or equivalent UI file; no `/system_prompt` route in `main.py`; HANDOFF.md still ends at criterion #4.
 - **Why it might matter:** The previous protocol was "halt at logical checkpoints with unpushed commits, await B's review, then push." That protocol is **unsafe across container boundaries** — the remote-execution environment B is using reclaims containers after inactivity, and anything not on origin is gone when the next session starts. This will keep happening as long as the protocol stays "halt with unpushed work."
 - **New operating rule (from B, 2026-05-21):** **push-before-halt.** Every commit lands on origin before any halt for B review. Halt for review at the end of logical chunks, but never halt with unpushed commits in the container. If push fails for any reason, that's the halt point — don't continue working with unpushed commits on top of an unpushed commit.
-- **Awaiting:** B is considering whether to codify this in `CLAUDE.md` §3 (Operating rules). Until then, this OBSERVATIONS entry + the explicit instruction in B's 2026-05-21 task brief carry the rule.
+- **Awaiting:** ~~B is considering whether to codify this in `CLAUDE.md` §3 (Operating rules). Until then, this OBSERVATIONS entry + the explicit instruction in B's 2026-05-21 task brief carry the rule.~~ **Resolved 2026-06-12:** B approved codification; the rule now lives in `CLAUDE.md` §3 as "On push-before-halt."
 - **What I did:** Logged it here and switched the operating discipline for this session to push-before-halt. Step 4 (redo doc alignment) and step 5 (rebuild criterion #5) of B's 2026-05-21 brief each terminate with a push before any halt point.
 
 ### 2026-05-08 — `runs`-table side effect from stub refresh endpoints constrains verification workflow
